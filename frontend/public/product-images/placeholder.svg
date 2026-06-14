@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <rect width="200" height="200" rx="16" fill="#f3f4f6"/>
+  <rect x="45" y="55" width="110" height="90" rx="12" fill="#ffffff" stroke="#d1d5db" stroke-width="3"/>
+  <path d="M65 55L100 25L135 55" stroke="#d1d5db" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="100" cy="95" r="18" fill="#e5e7eb"/>
+  <path d="M92 95L98 101L110 89" stroke="#9ca3af" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="100" y="170" font-family="system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="middle" fill="#6b7280">Amazon Flash Mode</text>
+</svg>

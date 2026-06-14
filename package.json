@@ -1,0 +1,16 @@
+{
+  "name": "amazon-flash-mode",
+  "version": "1.0.0",
+  "description": "Amazon Flash Mode MVP - Situation to purchase in under 5 seconds",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && source venv/Scripts/activate && uvicorn app.main:app --reload",
+    "build": "cd frontend && npm run build",
+    "test:backend": "cd backend && source venv/Scripts/activate && pytest",
+    "test": "npm run test:backend"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}

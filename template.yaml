@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Amazon Flash Mode MVP - Serverless backend with FastAPI, API Gateway, and DynamoDB
+
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - local
+      - prod
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 512
+    Runtime: python3.12
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        ENV: !Ref Environment
+        PRODUCTS_TABLE: !Ref ProductsTable
+        BUNDLES_TABLE: !Ref BundlesTable
+        SESSIONS_TABLE: !Ref SessionsTable
+
+Resources:
+  # DynamoDB Tables
+  ProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Products-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: productId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: productId
+          KeyType: HASH
+
+  BundlesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Bundles-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: bundleId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: bundleId
+          KeyType: HASH
+
+  SessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "Sessions-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: sessionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: sessionId
+          KeyType: HASH
+
+  # Lambda Function
+  FlashModeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "flash-mode-api-${Environment}"
+      Handler: lambda_function.lambda_handler
+      CodeUri: backend/
+      Description: Amazon Flash Mode API
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProductsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BundlesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SessionsTable
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            PayloadFormatVersion: "2.0"
+        RootEvent:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+            PayloadFormatVersion: "2.0"
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  ProductsTable:
+    Description: DynamoDB Products Table
+    Value: !Ref ProductsTable
+  BundlesTable:
+    Description: DynamoDB Bundles Table
+    Value: !Ref BundlesTable
+  SessionsTable:
+    Description: DynamoDB Sessions Table
+    Value: !Ref SessionsTable

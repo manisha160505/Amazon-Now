@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Flash Mode by Amazon",
+  "version": "1.0.0",
+  "description": "Highlight any text on a webpage and instantly generate a ready-to-buy cart.",
+  "permissions": ["contextMenus", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_title": "Flash Mode",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  }
+}
