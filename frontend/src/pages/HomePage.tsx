@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, ArrowRight, TrendingUp, Clock, RotateCcw } from 'lucide-react';
+import { Zap, ArrowRight, TrendingUp, Clock, RotateCcw, History, Trash2 } from 'lucide-react';
 import AmazonHeader from '../components/AmazonHeader';
 import AmazonFooter from '../components/AmazonFooter';
 import ProductCard from '../components/ProductCard';
 import { getRecommendations } from '../services/api';
+import { getCartHistory, clearCartHistory, type CartHistoryItem } from '../utils/cartHistory';
 import type { Product, RecommendationsResponse } from '../types';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<RecommendationsResponse | null>(null);
+  const [history, setHistory] = useState<CartHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +19,17 @@ export default function HomePage() {
       .then(setRecommendations)
       .catch(console.error)
       .finally(() => setLoading(false));
+    setHistory(getCartHistory());
   }, []);
+
+  const handleClearHistory = () => {
+    clearCartHistory();
+    setHistory([]);
+  };
+
+  const handleReorder = (item: CartHistoryItem) => {
+    navigate('/cart', { state: { cart: item.cart, query: item.query } });
+  };
 
   const handleProductClick = (product: Product) => {
     navigate('/flash', { state: { prefill: product.productName } });
@@ -78,6 +90,42 @@ export default function HomePage() {
             <p className="text-sm text-gray-600">Based on recent searches and demands</p>
           </div>
         </div>
+
+        {/* Recent Flash Carts */}
+        {history.length > 0 && (
+          <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <History size={18} className="text-amazon-blue" />
+                <h2 className="text-lg font-bold text-gray-900">Recent Flash Carts</h2>
+              </div>
+              <button
+                onClick={handleClearHistory}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 transition-colors"
+              >
+                <Trash2 size={12} />
+                Clear
+              </button>
+            </div>
+            <div className="space-y-2">
+              {history.slice(0, 4).map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleReorder(item)}
+                  className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-amazon-orange/10 border border-gray-100 hover:border-amazon-orange rounded-lg transition-all text-left"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900 text-sm">{item.query}</p>
+                    <p className="text-xs text-gray-500">
+                      {item.cart.bundle} • {item.cart.products.length} items • ₹{item.cart.total.toFixed(0)}
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold text-amazon-blue">Reorder →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent searches */}
         {recommendations?.recentSearches && recommendations.recentSearches.length > 0 && (

@@ -121,39 +121,64 @@ npm run build
 
 ## ☁️ AWS Deployment
 
-### 1. Deploy Backend
+### Option 1: GitHub Actions (fully automated)
+
+A complete CI/CD pipeline is provided in `.github/workflows/deploy.yml`. On every push to `main`/`master` it:
+
+1. Deploys the SAM backend (Lambda + API Gateway + DynamoDB)
+2. Seeds DynamoDB with products and bundles
+3. Builds the frontend against the live API URL
+4. Uploads the frontend to S3
+5. Invalidates the CloudFront cache
+
+Add these secrets/variables in **Settings → Secrets and variables → Actions**:
+
+| Type | Name | Value |
+|------|------|-------|
+| Secret | `AWS_ACCESS_KEY_ID` | Your AWS access key |
+| Secret | `AWS_SECRET_ACCESS_KEY` | Your AWS secret key |
+| Secret | `GROQ_API_KEY` | Groq API key (optional, enables LLM fallback) |
+| Variable | `AWS_REGION` | e.g. `us-east-1` |
+| Variable | `STACK_NAME` | e.g. `flash-mode-backend` |
+| Variable | `S3_BUCKET_NAME` | Frontend hosting bucket |
+| Variable | `CLOUDFRONT_DISTRIBUTION_ID` | (Optional) CloudFront distribution ID |
+
+### Option 2: Docker-based deployment (no local install)
+
+Requires only Docker Desktop. Set AWS credentials and run:
 
 ```bash
-cd infra
-./deploy.sh flash-mode-backend prod
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_REGION=us-east-1
+export GROQ_API_KEY=...  # optional
+
+# 1. Deploy backend (prints API URL)
+./infra/deploy-with-docker.sh flash-mode-backend prod
+
+# 2. Deploy frontend infrastructure (S3 + CloudFront)
+./infra/deploy-frontend-infra-with-docker.sh your-unique-bucket-name flash-mode-frontend
+
+# 3. Deploy frontend code
+./infra/deploy-frontend-with-docker.sh your-unique-bucket-name E1234567890ABCD "https://your-api-url/"
 ```
 
-This creates:
-- Lambda function
-- API Gateway HTTP API
-- DynamoDB tables (Products, Bundles, Sessions)
+### Option 3: Local tooling
 
-### 2. Seed DynamoDB
+Requires AWS CLI, SAM CLI, Node.js, and Python.
 
 ```bash
-cd backend
-source venv/bin/activate
-python scripts/seed_dynamodb.py
+# Backend (auto-seeds DynamoDB)
+GROQ_API_KEY=... ./infra/deploy.sh flash-mode-backend prod
+
+# Frontend infrastructure
+./infra/deploy-frontend-infra.sh your-unique-bucket-name flash-mode-frontend
+
+# Frontend code
+./infra/deploy_frontend.sh your-unique-bucket-name E1234567890ABCD "https://your-api-url/"
 ```
 
-### 3. Deploy Frontend
-
-```bash
-# Create S3 bucket and CloudFront distribution first via AWS Console or CLI
-cd infra
-./deploy_frontend.sh your-s3-bucket-name your-cloudfront-distribution-id
-```
-
-Update `frontend/.env` with the API Gateway URL before building:
-
-```env
-VITE_API_BASE_URL=https://your-api-url.execute-api.us-east-1.amazonaws.com
-```
+For detailed deployment instructions, see [`infra/README.md`](infra/README.md).
 
 ---
 
@@ -206,6 +231,23 @@ No API key = rule-based engine only (still works for all keyword matches).
 ## 🔮 Future Extension
 
 The `intent_engine.py` module exposes a single `detect_intent(query)` function. The rule-based + Groq implementation can be replaced with **Amazon Bedrock** without changing any routes or frontend code.
+
+---
+
+## 💰 Estimated AWS Cost (Free Tier eligible)
+
+For a demo / low-traffic MVP:
+
+| Service | Free Tier | Typical Monthly Cost |
+|---------|-----------|----------------------|
+| AWS Lambda | 1M requests + 400K GB-sec free | ~$0 |
+| API Gateway | 1M HTTP API calls free | ~$0 |
+| DynamoDB | 25 GB + 25 WCU/RCU free | ~$0 |
+| S3 | 5 GB free | ~$0.10 |
+| CloudFront | 1 TB data transfer free (first year) | ~$0 |
+| CloudWatch Logs | 5 GB logs free | ~$0 |
+
+**Total first-year demo cost: typically under $1/month** if you stay within free tier limits.
 
 ---
 

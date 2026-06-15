@@ -6,6 +6,7 @@ import AmazonFooter from '../components/AmazonFooter';
 import BundleCard from '../components/BundleCard';
 import ProductRow from '../components/ProductRow';
 import { addBundleToCart, splitBill } from '../services/api';
+import { saveCartToHistory } from '../utils/cartHistory';
 import type { GenerateCartResponse, SplitBillResponse } from '../types';
 
 interface LocationState {
@@ -44,6 +45,12 @@ export default function GeneratedCartPage() {
       splitBill(cart.total, splitPeople).then(setSplitResult).catch(console.error);
     }
   }, [cart, splitPeople, showSplit]);
+
+  useEffect(() => {
+    if (cart && query) {
+      saveCartToHistory(query, cart);
+    }
+  }, [cart, query]);
 
   if (!cart) {
     return (

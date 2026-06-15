@@ -9,6 +9,11 @@ Parameters:
     AllowedValues:
       - local
       - prod
+  GroqApiKey:
+    Type: String
+    Default: ''
+    NoEcho: true
+    Description: Groq API key for LLM intent fallback (optional)
 
 Globals:
   Function:
@@ -23,6 +28,7 @@ Globals:
         PRODUCTS_TABLE: !Ref ProductsTable
         BUNDLES_TABLE: !Ref BundlesTable
         SESSIONS_TABLE: !Ref SessionsTable
+        GROQ_API_KEY: !Ref GroqApiKey
 
 Resources:
   # DynamoDB Tables

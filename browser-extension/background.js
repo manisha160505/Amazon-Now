@@ -1,7 +1,7 @@
 // Flash Mode Browser Extension
 // Right-click selected text → "Add to Flash Cart" opens the React app pre-filled.
 
-const FLASH_APP_URL = "http://localhost:5180/flash";
+const FLASH_APP_URL = "http://localhost:5173/flash";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
